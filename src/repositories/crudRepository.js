@@ -73,7 +73,7 @@ class CrudRepository {
         );
       }
 
-      const updatedData = await this.model.findByPk(id); // Fetch updated data
+      const updatedData = await this.model.findByPk(id); 
 
       return updatedData;
     } catch (error) {
