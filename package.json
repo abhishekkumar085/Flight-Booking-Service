@@ -1,7 +1,7 @@
 {
   "name": "booking-service",
   "version": "1.0.0",
-  "description": "A basic started boilerplate project for node",
+  "description": "A service for booking flights.",
   "main": "index.js",
   "scripts": {
     "dev": "npx nodemon src/index.js"
