@@ -5,7 +5,7 @@ const { FLIGHT_SERVICE } = require('../config/server-config');
 const { StatusCodes } = require('http-status-codes');
 const { AppError } = require('../utils');
 
-const { BOOKED } = require('../utils/ENUM/enum').BOOKING_STATUS;
+const { BOOKED, CANCELLED } = require('../utils/ENUM/enum').BOOKING_STATUS;
 
 const bookingRepository = new BookingRepository();
 
@@ -53,6 +53,22 @@ async function makePayment(data) {
       data.bookingId,
       transaction
     );
+
+    if (bookingDetails.status === CANCELLED) {
+      throw new AppError('Booking time expired', StatusCodes.BAD_REQUEST);
+    }
+
+    const bookingTime = new Date(bookingDetails.createdAt);
+    const currentTime = new Date();
+
+    if (currentTime - bookingTime > 300000) {
+      await bookingRepository.update(
+        data.bookingId,
+        { status: CANCELLED },
+        transaction
+      );
+      throw new AppError('Booking time expired', StatusCodes.BAD_REQUEST);
+    }
     if (bookingDetails.totalCost != data.totalCost) {
       throw new AppError('Invalid amount', StatusCodes.BAD_REQUEST);
     }
@@ -64,7 +80,7 @@ async function makePayment(data) {
       );
     }
 
-    const response = await bookingRepository.update(
+    await bookingRepository.update(
       data.bookingId,
       { status: BOOKED },
       transaction
