@@ -5,6 +5,8 @@ const { FLIGHT_SERVICE } = require('../config/server-config');
 const { StatusCodes } = require('http-status-codes');
 const { AppError } = require('../utils');
 
+const { BOOKED } = require('../utils/ENUM/enum').BOOKING_STATUS;
+
 const bookingRepository = new BookingRepository();
 
 async function createBooking(data) {
@@ -44,6 +46,39 @@ async function createBooking(data) {
   }
 }
 
+async function makePayment(data) {
+  const transaction = await db.sequelize.transaction();
+  try {
+    const bookingDetails = await bookingRepository.get(
+      data.bookingId,
+      transaction
+    );
+    if (bookingDetails.totalCost != data.totalCost) {
+      throw new AppError('Invalid amount', StatusCodes.BAD_REQUEST);
+    }
+
+    if (bookingDetails.userId != data.userId) {
+      throw new AppError(
+        'The user corresponding to the booking doesnt match',
+        StatusCodes.BAD_REQUEST
+      );
+    }
+
+    const response = await bookingRepository.update(
+      data.bookingId,
+      { status: BOOKED },
+      transaction
+    );
+
+    await transaction.commit();
+  } catch (error) {
+    await transaction.rollback();
+    console.log(error);
+    throw error;
+  }
+}
+
 module.exports = {
   createBooking,
+  makePayment,
 };
