@@ -2,6 +2,10 @@ const { StatusCodes } = require('http-status-codes');
 const { Booking } = require('../models');
 const { AppError } = require('../utils');
 const CrudRepository = require('./crudRepository');
+const ENUM = require('../utils/ENUM/enum');
+const { Op } = require('sequelize');
+
+const { CANCELLED, BOOKED } = ENUM.BOOKING_STATUS;
 
 class BookingRepository extends CrudRepository {
   constructor() {
